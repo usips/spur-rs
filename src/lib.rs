@@ -21,8 +21,23 @@
 //! | [`TagMetadata`] | Service tag metadata and metrics |
 //! | [`ApiStatus`] | API account status and quota |
 //!
+//! ## Strongly Typed Enums
+//!
+//! | Enum | Purpose |
+//! |------|---------|
+//! | [`Infrastructure`] | Network type (Datacenter, Residential, Mobile, Business) |
+//! | [`Risk`] | Risk factors (Tunnel, Spam, CallbackProxy, GeoMismatch) |
+//! | [`Service`] | Protocols (OpenVpn, Ipsec, Wireguard, Ssh) |
+//! | [`TunnelType`] | Tunnel type (Vpn, Proxy, Tor) |
+//! | [`Behavior`] | Client behaviors (FileSharing, TorProxyUser) |
+//! | [`DeviceType`] | Device types (Mobile, Desktop) |
+//!
+//! All enums include an `Other(String)` variant for forward compatibility
+//! with new API values.
+//!
 //! ## Features
 //!
+//! - **Strongly typed enums** with `Other(String)` fallback for extensibility
 //! - **Zero-copy deserialization** with serde
 //! - **All fields optional** - handles partial API responses gracefully
 //! - **Efficient serialization** - `None` values are omitted
@@ -32,7 +47,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! spur = "0.1"
+//! spur = "0.2"
 //! serde_json = "1"
 //! ```
 //!
@@ -41,7 +56,7 @@
 //! ### Deserializing an IP Context
 //!
 //! ```rust
-//! use spur::IpContext;
+//! use spur::{IpContext, Infrastructure, TunnelType};
 //!
 //! let json = r#"{
 //!     "ip": "89.39.106.191",
@@ -53,24 +68,37 @@
 //!
 //! let context: IpContext = serde_json::from_str(json).unwrap();
 //!
-//! // Check infrastructure type
-//! assert_eq!(context.infrastructure.as_deref(), Some("DATACENTER"));
+//! // Check infrastructure type with pattern matching
+//! assert_eq!(context.infrastructure, Some(Infrastructure::Datacenter));
 //!
 //! // Check for VPN usage
 //! let is_vpn = context.tunnels.as_ref()
-//!     .map(|t| t.iter().any(|t| t.tunnel_type.as_deref() == Some("VPN")))
+//!     .map(|t| t.iter().any(|t| t.tunnel_type == Some(TunnelType::Vpn)))
 //!     .unwrap_or(false);
 //! assert!(is_vpn);
 //! ```
 //!
-//! ### Infrastructure Types
+//! ### Working with Enums
 //!
-//! | Value | Description |
-//! |-------|-------------|
-//! | `DATACENTER` | IP from datacenter/cloud provider |
-//! | `RESIDENTIAL` | Home ISP connection |
-//! | `MOBILE` | Mobile carrier network |
-//! | `BUSINESS` | Business/enterprise network |
+//! ```rust
+//! use spur::{Infrastructure, Risk};
+//!
+//! // Pattern matching on known variants
+//! fn describe_infra(infra: &Infrastructure) -> &str {
+//!     match infra {
+//!         Infrastructure::Datacenter => "Cloud/Server",
+//!         Infrastructure::Residential => "Home User",
+//!         Infrastructure::Mobile => "Mobile Carrier",
+//!         Infrastructure::Business => "Enterprise",
+//!         Infrastructure::Other(s) => s.as_str(),
+//!     }
+//! }
+//!
+//! // Unknown API values deserialize to Other
+//! let json = r#""SATELLITE""#;
+//! let infra: Infrastructure = serde_json::from_str(json).unwrap();
+//! assert!(infra.is_other());
+//! ```
 //!
 //! ### Detecting Anonymous Traffic
 //!
@@ -87,15 +115,13 @@
 //! ### Checking Risk Factors
 //!
 //! ```rust
-//! use spur::IpContext;
+//! use spur::{IpContext, Risk};
 //!
-//! fn has_risk(ctx: &IpContext, risk: &str) -> bool {
+//! fn has_tunnel_risk(ctx: &IpContext) -> bool {
 //!     ctx.risks.as_ref()
-//!         .map(|risks| risks.iter().any(|r| r == risk))
+//!         .map(|risks| risks.iter().any(|r| *r == Risk::Tunnel))
 //!         .unwrap_or(false)
 //! }
-//!
-//! // Common risk values: "TUNNEL", "SPAM", "CALLBACK_PROXY", "GEO_MISMATCH"
 //! ```
 //!
 //! ## Test Utilities
@@ -104,7 +130,7 @@
 //!
 //! ```toml
 //! [dev-dependencies]
-//! spur = { version = "0.1", features = ["test-utils"] }
+//! spur = { version = "0.2", features = ["test-utils"] }
 //! ```
 //!
 //! ```rust,ignore
@@ -113,15 +139,15 @@
 //! // Build custom test contexts
 //! let vpn_context = IpContextBuilder::new()
 //!     .ip("1.2.3.4")
-//!     .infrastructure("DATACENTER")
+//!     .infrastructure(Infrastructure::Datacenter)
 //!     .vpn("NordVPN")
-//!     .add_risk("TUNNEL")
+//!     .add_risk(Risk::Tunnel)
 //!     .build();
 //!
 //! // Use pre-built fixtures
 //! let residential = fixtures::residential_ip();
 //! let tor_exit = fixtures::tor_exit_node();
-//! let datacenter = fixtures::datacenter_proxy();
+//! let datacenter = fixtures::datacenter_ip();
 //! ```
 //!
 //! ## API Response Fields
@@ -135,19 +161,30 @@
 //!
 //! fn describe(ctx: &IpContext) -> String {
 //!     let ip = ctx.ip.as_deref().unwrap_or("unknown");
-//!     let infra = ctx.infrastructure.as_deref().unwrap_or("unknown");
+//!     let infra = ctx.infrastructure.as_ref()
+//!         .map(|i| i.as_str())
+//!         .unwrap_or("unknown");
 //!     let org = ctx.organization.as_deref().unwrap_or("unknown");
 //!     format!("{} ({} / {})", ip, infra, org)
 //! }
 //! ```
 
+#![deny(unsafe_code)]
+#![warn(missing_docs)]
+#![warn(clippy::all)]
+
 mod context;
+pub mod enums;
 mod metadata;
 mod status;
 
 #[cfg(any(test, feature = "test-utils"))]
 pub mod test_utils;
 
+#[cfg(any(test, feature = "test-utils"))]
+pub mod proptest_strategies;
+
 pub use context::*;
+pub use enums::*;
 pub use metadata::*;
 pub use status::*;

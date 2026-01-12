@@ -1,0 +1,26 @@
+{
+    "ip": "20.15.240.100",
+    "infrastructure": "DATACENTER",
+    "organization": "OpenAI",
+    "as": {
+        "number": 8075,
+        "organization": "Microsoft Corporation"
+    },
+    "location": {
+        "country": "US",
+        "city": "Ashburn",
+        "state": "Virginia",
+        "latitude": 39.0438,
+        "longitude": -77.4874
+    },
+    "ai": {
+        "scrapers": true,
+        "bots": true,
+        "services": ["OPENAI", "CHATGPT", "GPT-4"]
+    },
+    "client": {
+        "count": 1,
+        "countries": 1,
+        "types": ["DESKTOP"]
+    }
+}

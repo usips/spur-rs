@@ -1,0 +1,21 @@
+{
+    "ip": "203.0.113.45",
+    "infrastructure": "RESIDENTIAL",
+    "organization": "Comcast Cable Communications",
+    "as": {
+        "number": 7922,
+        "organization": "Comcast Cable Communications, LLC"
+    },
+    "location": {
+        "country": "US",
+        "city": "Philadelphia",
+        "state": "Pennsylvania",
+        "latitude": 39.9526,
+        "longitude": -75.1652
+    },
+    "client": {
+        "count": 1,
+        "countries": 1,
+        "types": ["DESKTOP"]
+    }
+}

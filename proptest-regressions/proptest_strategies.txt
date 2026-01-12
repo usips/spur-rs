@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc f4ed213590de02972b94cca09a3dc8de1e164dce14fa9cff230bb59f8c9de5b2 # shrinks to context = IpContext { ai: None, autonomous_system: None, client: None, infrastructure: None, ip: None, location: Some(Location { city: None, country: None, latitude: Some(-12.410815825573637), longitude: None, state: None }), organization: None, risks: None, services: None, tunnels: None }

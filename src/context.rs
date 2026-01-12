@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::enums::{Behavior, DeviceType, Infrastructure, Risk, Service, TunnelType};
+
 /// The IP Context Object summarizes all available information for an IP address.
 ///
 /// All fields may be omitted if their value is null.
@@ -20,9 +22,9 @@ pub struct IpContext {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub client: Option<Client>,
 
-    /// Infrastructure type (e.g., "DATACENTER", "MOBILE", "RESIDENTIAL").
+    /// Infrastructure type classification (datacenter, residential, mobile, etc.).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub infrastructure: Option<String>,
+    pub infrastructure: Option<Infrastructure>,
 
     /// IPv4 or IPv6 address associated with the connection.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,11 +40,11 @@ pub struct IpContext {
 
     /// List of identified risk factors or behaviors.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub risks: Option<Vec<String>>,
+    pub risks: Option<Vec<Risk>>,
 
-    /// List of services or protocols in use (e.g., "OPENVPN", "IPSEC").
+    /// List of services or protocols in use (OpenVPN, IPSec, etc.).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub services: Option<Vec<String>>,
+    pub services: Option<Vec<Service>>,
 
     /// Information about tunneling methods (VPN, TOR, etc.) used.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -83,9 +85,9 @@ pub struct AutonomousSystem {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Client {
-    /// Observed client behaviors (e.g., "FILE_SHARING", "TOR_PROXY_USER").
+    /// Observed client behaviors (file sharing, tor usage, etc.).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub behaviors: Option<Vec<String>>,
+    pub behaviors: Option<Vec<Behavior>>,
 
     /// Geographic concentration of users behind this IP.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -99,7 +101,7 @@ pub struct Client {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub countries: Option<u32>,
 
-    /// Proxy services observed (e.g., "ABCPROXY_PROXY", "NETNUT_PROXY").
+    /// Proxy services observed (service-specific identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proxies: Option<Vec<String>>,
 
@@ -107,9 +109,9 @@ pub struct Client {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub spread: Option<u64>,
 
-    /// Client device types observed (e.g., "MOBILE", "DESKTOP").
+    /// Client device types observed (mobile, desktop, etc.).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub types: Option<Vec<String>>,
+    pub types: Option<Vec<DeviceType>>,
 }
 
 /// Geographic concentration of users behind an IP.
@@ -182,9 +184,9 @@ pub struct Tunnel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub operator: Option<String>,
 
-    /// Type of tunnel (e.g., "VPN", "PROXY", "TOR").
+    /// Type of tunnel (VPN, Proxy, Tor).
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    pub tunnel_type: Option<String>,
+    pub tunnel_type: Option<TunnelType>,
 }
 
 /// A tunnel entry (ingress point).
@@ -238,7 +240,7 @@ mod tests {
         let context: IpContext = serde_json::from_str(json).unwrap();
 
         assert_eq!(context.ip.as_deref(), Some("89.39.106.191"));
-        assert_eq!(context.infrastructure.as_deref(), Some("DATACENTER"));
+        assert_eq!(context.infrastructure, Some(Infrastructure::Datacenter));
 
         let asys = context.autonomous_system.as_ref().unwrap();
         assert_eq!(asys.number, Some(49981));
@@ -249,7 +251,11 @@ mod tests {
         assert_eq!(client.countries, Some(2));
         assert_eq!(
             client.behaviors.as_ref().unwrap(),
-            &vec!["FILE_SHARING", "TOR_PROXY_USER"]
+            &vec![Behavior::FileSharing, Behavior::TorProxyUser]
+        );
+        assert_eq!(
+            client.types.as_ref().unwrap(),
+            &vec![DeviceType::Mobile, DeviceType::Desktop]
         );
 
         let conc = client.concentration.as_ref().unwrap();
@@ -298,7 +304,7 @@ mod tests {
         let context: IpContext = serde_json::from_str(json).unwrap();
         let tunnels = context.tunnels.as_ref().unwrap();
         assert_eq!(tunnels.len(), 1);
-        assert_eq!(tunnels[0].tunnel_type.as_deref(), Some("VPN"));
+        assert_eq!(tunnels[0].tunnel_type, Some(TunnelType::Vpn));
         assert_eq!(tunnels[0].operator.as_deref(), Some("NordVPN"));
         assert_eq!(tunnels[0].anonymous, Some(true));
 
@@ -311,7 +317,7 @@ mod tests {
     fn test_serialize_context() {
         let context = IpContext {
             ip: Some("1.2.3.4".to_string()),
-            infrastructure: Some("RESIDENTIAL".to_string()),
+            infrastructure: Some(Infrastructure::Residential),
             ..Default::default()
         };
 

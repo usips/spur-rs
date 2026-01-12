@@ -1,0 +1,45 @@
+{
+    "ip": "89.39.106.191",
+    "infrastructure": "DATACENTER",
+    "organization": "WorldStream B.V.",
+    "as": {
+        "number": 49981,
+        "organization": "WorldStream B.V."
+    },
+    "location": {
+        "country": "NL",
+        "city": "Amsterdam",
+        "state": "North Holland",
+        "latitude": 52.3676,
+        "longitude": 4.9041
+    },
+    "risks": ["TUNNEL"],
+    "services": ["OPENVPN", "WIREGUARD"],
+    "tunnels": [
+        {
+            "type": "VPN",
+            "operator": "NordVPN",
+            "anonymous": true,
+            "entries": [
+                {
+                    "ip": "185.156.46.10",
+                    "location": {
+                        "country": "US",
+                        "city": "New York"
+                    },
+                    "as": {
+                        "number": 12345,
+                        "organization": "Entry Provider"
+                    }
+                }
+            ]
+        }
+    ],
+    "client": {
+        "count": 50,
+        "countries": 15,
+        "spread": 1500000,
+        "types": ["DESKTOP", "MOBILE"],
+        "behaviors": ["FILE_SHARING"]
+    }
+}

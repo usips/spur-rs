@@ -9,18 +9,19 @@
 //!
 //! ```toml
 //! [dev-dependencies]
-//! spur = { version = "0.1", features = ["test-utils"] }
+//! spur = { version = "0.2", features = ["test-utils"] }
 //! ```
 //!
 //! ## Usage
 //!
 //! ```rust
 //! use spur::test_utils::{IpContextBuilder, fixtures};
+//! use spur::{Infrastructure, Risk, TunnelType};
 //!
 //! // Build a custom context for testing
 //! let context = IpContextBuilder::new()
 //!     .ip("1.2.3.4")
-//!     .infrastructure("DATACENTER")
+//!     .infrastructure(Infrastructure::Datacenter)
 //!     .vpn("NordVPN")
 //!     .build();
 //!
@@ -31,7 +32,8 @@
 //! ```
 
 use crate::{
-    Ai, AutonomousSystem, Client, Concentration, IpContext, Location, Tunnel, TunnelEntry,
+    Ai, AutonomousSystem, Behavior, Client, Concentration, DeviceType, Infrastructure, IpContext,
+    Location, Risk, Service, Tunnel, TunnelEntry, TunnelType,
 };
 
 /// Builder for creating [`IpContext`] instances in tests.
@@ -42,12 +44,13 @@ use crate::{
 ///
 /// ```rust
 /// use spur::test_utils::IpContextBuilder;
+/// use spur::{Infrastructure, Risk};
 ///
 /// let context = IpContextBuilder::new()
 ///     .ip("89.39.106.191")
-///     .infrastructure("DATACENTER")
+///     .infrastructure(Infrastructure::Datacenter)
 ///     .asn(49981, "WorldStream")
-///     .add_risk("SPAM")
+///     .add_risk(Risk::Spam)
 ///     .build();
 ///
 /// assert_eq!(context.ip.as_deref(), Some("89.39.106.191"));
@@ -69,9 +72,9 @@ impl IpContextBuilder {
         self
     }
 
-    /// Set the infrastructure type (e.g., "DATACENTER", "RESIDENTIAL", "MOBILE").
-    pub fn infrastructure(mut self, infra: &str) -> Self {
-        self.context.infrastructure = Some(infra.to_string());
+    /// Set the infrastructure type.
+    pub fn infrastructure(mut self, infra: Infrastructure) -> Self {
+        self.context.infrastructure = Some(infra);
         self
     }
 
@@ -120,22 +123,22 @@ impl IpContextBuilder {
     }
 
     /// Add a risk factor.
-    pub fn add_risk(mut self, risk: &str) -> Self {
+    pub fn add_risk(mut self, risk: Risk) -> Self {
         let risks = self.context.risks.get_or_insert_with(Vec::new);
-        risks.push(risk.to_string());
+        risks.push(risk);
         self
     }
 
     /// Set multiple risk factors.
-    pub fn risks(mut self, risks: &[&str]) -> Self {
-        self.context.risks = Some(risks.iter().map(|s| s.to_string()).collect());
+    pub fn risks(mut self, risks: Vec<Risk>) -> Self {
+        self.context.risks = Some(risks);
         self
     }
 
-    /// Add a service (e.g., "OPENVPN", "WIREGUARD", "IPSEC").
-    pub fn add_service(mut self, service: &str) -> Self {
+    /// Add a service (e.g., OpenVPN, Wireguard, IPSec).
+    pub fn add_service(mut self, service: Service) -> Self {
         let services = self.context.services.get_or_insert_with(Vec::new);
-        services.push(service.to_string());
+        services.push(service);
         self
     }
 
@@ -143,7 +146,7 @@ impl IpContextBuilder {
     pub fn vpn(mut self, operator: &str) -> Self {
         let tunnels = self.context.tunnels.get_or_insert_with(Vec::new);
         tunnels.push(Tunnel {
-            tunnel_type: Some("VPN".to_string()),
+            tunnel_type: Some(TunnelType::Vpn),
             operator: Some(operator.to_string()),
             anonymous: Some(true),
             entries: None,
@@ -155,7 +158,7 @@ impl IpContextBuilder {
     pub fn vpn_with_entry(mut self, operator: &str, entry_ip: &str, entry_country: &str) -> Self {
         let tunnels = self.context.tunnels.get_or_insert_with(Vec::new);
         tunnels.push(Tunnel {
-            tunnel_type: Some("VPN".to_string()),
+            tunnel_type: Some(TunnelType::Vpn),
             operator: Some(operator.to_string()),
             anonymous: Some(true),
             entries: Some(vec![TunnelEntry {
@@ -174,7 +177,7 @@ impl IpContextBuilder {
     pub fn tor(mut self) -> Self {
         let tunnels = self.context.tunnels.get_or_insert_with(Vec::new);
         tunnels.push(Tunnel {
-            tunnel_type: Some("TOR".to_string()),
+            tunnel_type: Some(TunnelType::Tor),
             operator: Some("Tor Project".to_string()),
             anonymous: Some(true),
             entries: None,
@@ -186,7 +189,7 @@ impl IpContextBuilder {
     pub fn proxy(mut self, operator: &str) -> Self {
         let tunnels = self.context.tunnels.get_or_insert_with(Vec::new);
         tunnels.push(Tunnel {
-            tunnel_type: Some("PROXY".to_string()),
+            tunnel_type: Some(TunnelType::Proxy),
             operator: Some(operator.to_string()),
             anonymous: Some(false),
             entries: None,
@@ -218,16 +221,16 @@ impl IpContextBuilder {
     }
 
     /// Set client behaviors.
-    pub fn client_behaviors(mut self, behaviors: &[&str]) -> Self {
+    pub fn client_behaviors(mut self, behaviors: Vec<Behavior>) -> Self {
         let client = self.context.client.get_or_insert_with(Client::default);
-        client.behaviors = Some(behaviors.iter().map(|s| s.to_string()).collect());
+        client.behaviors = Some(behaviors);
         self
     }
 
     /// Set client types.
-    pub fn client_types(mut self, types: &[&str]) -> Self {
+    pub fn client_types(mut self, types: Vec<DeviceType>) -> Self {
         let client = self.context.client.get_or_insert_with(Client::default);
-        client.types = Some(types.iter().map(|s| s.to_string()).collect());
+        client.types = Some(types);
         self
     }
 
@@ -262,11 +265,11 @@ pub mod fixtures {
     pub fn residential_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("203.0.113.1")
-            .infrastructure("RESIDENTIAL")
+            .infrastructure(Infrastructure::Residential)
             .asn(7922, "Comcast Cable")
             .location("US", Some("Philadelphia"))
             .client(1, 1)
-            .client_types(&["DESKTOP"])
+            .client_types(vec![DeviceType::Desktop])
             .build()
     }
 
@@ -276,11 +279,11 @@ pub mod fixtures {
     pub fn mobile_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("203.0.113.2")
-            .infrastructure("MOBILE")
+            .infrastructure(Infrastructure::Mobile)
             .asn(310, "T-Mobile USA")
             .location("US", Some("Los Angeles"))
             .client(50, 1)
-            .client_types(&["MOBILE"])
+            .client_types(vec![DeviceType::Mobile])
             .build()
     }
 
@@ -290,7 +293,7 @@ pub mod fixtures {
     pub fn datacenter_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("198.51.100.1")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .asn(16509, "Amazon Data Services")
             .location("US", Some("Ashburn"))
             .organization("AWS")
@@ -303,12 +306,12 @@ pub mod fixtures {
     pub fn vpn_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("89.39.106.191")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .asn(49981, "WorldStream")
             .location("NL", Some("Amsterdam"))
             .vpn("NordVPN")
-            .add_risk("ANONYMOUS")
-            .add_service("OPENVPN")
+            .add_risk(Risk::Other("ANONYMOUS".to_string()))
+            .add_service(Service::OpenVpn)
             .build()
     }
 
@@ -318,12 +321,12 @@ pub mod fixtures {
     pub fn tor_exit_node() -> IpContext {
         IpContextBuilder::new()
             .ip("185.220.101.1")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .asn(60729, "Tor Exit")
             .location("DE", Some("Frankfurt"))
             .tor()
-            .add_risk("ANONYMOUS")
-            .add_risk("TOR_EXIT")
+            .add_risk(Risk::Other("ANONYMOUS".to_string()))
+            .add_risk(Risk::Other("TOR_EXIT".to_string()))
             .build()
     }
 
@@ -333,12 +336,12 @@ pub mod fixtures {
     pub fn proxy_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("45.33.32.156")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .asn(63949, "Linode")
             .proxy("Bright Data")
             .client(100, 15)
-            .client_behaviors(&["PROXY_USER"])
-            .add_risk("PROXY")
+            .client_behaviors(vec![Behavior::Other("PROXY_USER".to_string())])
+            .add_risk(Risk::Other("PROXY".to_string()))
             .build()
     }
 
@@ -346,12 +349,12 @@ pub mod fixtures {
     pub fn ai_scraper_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("20.15.240.0")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .asn(8075, "Microsoft Corporation")
             .organization("OpenAI")
             .ai_scraper(true)
             .ai_services(&["OPENAI", "CHATGPT"])
-            .add_risk("AI_SCRAPER")
+            .add_risk(Risk::Other("AI_SCRAPER".to_string()))
             .build()
     }
 
@@ -361,13 +364,13 @@ pub mod fixtures {
     pub fn residential_proxy_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("73.231.45.12")
-            .infrastructure("RESIDENTIAL")
+            .infrastructure(Infrastructure::Residential)
             .asn(7922, "Comcast Cable")
             .location("US", Some("Seattle"))
             .client(200, 45)
-            .client_behaviors(&["FILE_SHARING", "TOR_PROXY_USER"])
+            .client_behaviors(vec![Behavior::FileSharing, Behavior::TorProxyUser])
             .concentration("RU", "Moscow", 0.85)
-            .add_risk("RESIDENTIAL_PROXY")
+            .add_risk(Risk::Other("RESIDENTIAL_PROXY".to_string()))
             .build()
     }
 
@@ -377,12 +380,12 @@ pub mod fixtures {
     pub fn corporate_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("17.253.144.10")
-            .infrastructure("BUSINESS")
+            .infrastructure(Infrastructure::Business)
             .asn(714, "Apple Inc")
             .location("US", Some("Cupertino"))
             .organization("Apple Inc")
             .client(1, 1)
-            .client_types(&["DESKTOP"])
+            .client_types(vec![DeviceType::Desktop])
             .build()
     }
 
@@ -390,14 +393,24 @@ pub mod fixtures {
     pub fn high_risk_ip() -> IpContext {
         IpContextBuilder::new()
             .ip("5.188.206.1")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .asn(49505, "Selectel")
             .location("RU", Some("Moscow"))
             .vpn("Unknown VPN")
             .proxy("Luminati")
-            .risks(&["ANONYMOUS", "SPAM", "SCAN", "ATTACK", "MALWARE"])
+            .risks(vec![
+                Risk::Other("ANONYMOUS".to_string()),
+                Risk::Spam,
+                Risk::Other("SCAN".to_string()),
+                Risk::Other("ATTACK".to_string()),
+                Risk::Other("MALWARE".to_string()),
+            ])
             .client(500, 80)
-            .client_behaviors(&["SPAM", "SCAN", "ATTACK"])
+            .client_behaviors(vec![
+                Behavior::Other("SPAM".to_string()),
+                Behavior::Other("SCAN".to_string()),
+                Behavior::Other("ATTACK".to_string()),
+            ])
             .build()
     }
 }
@@ -433,11 +446,11 @@ mod tests {
     fn test_builder_basic() {
         let context = IpContextBuilder::new()
             .ip("1.2.3.4")
-            .infrastructure("DATACENTER")
+            .infrastructure(Infrastructure::Datacenter)
             .build();
 
         assert_eq!(context.ip.as_deref(), Some("1.2.3.4"));
-        assert_eq!(context.infrastructure.as_deref(), Some("DATACENTER"));
+        assert_eq!(context.infrastructure, Some(Infrastructure::Datacenter));
     }
 
     #[test]
@@ -446,7 +459,7 @@ mod tests {
 
         let tunnels = context.tunnels.unwrap();
         assert_eq!(tunnels.len(), 1);
-        assert_eq!(tunnels[0].tunnel_type.as_deref(), Some("VPN"));
+        assert_eq!(tunnels[0].tunnel_type, Some(TunnelType::Vpn));
         assert_eq!(tunnels[0].operator.as_deref(), Some("NordVPN"));
     }
 
@@ -465,7 +478,7 @@ mod tests {
     #[test]
     fn test_fixtures_residential() {
         let ctx = fixtures::residential_ip();
-        assert_eq!(ctx.infrastructure.as_deref(), Some("RESIDENTIAL"));
+        assert_eq!(ctx.infrastructure, Some(Infrastructure::Residential));
         assert!(ctx.tunnels.is_none());
     }
 
@@ -474,18 +487,14 @@ mod tests {
         let ctx = fixtures::vpn_ip();
         assert!(ctx.tunnels.is_some());
         let tunnels = ctx.tunnels.as_ref().unwrap();
-        assert!(tunnels
-            .iter()
-            .any(|t| t.tunnel_type.as_deref() == Some("VPN")));
+        assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Vpn)));
     }
 
     #[test]
     fn test_fixtures_tor() {
         let ctx = fixtures::tor_exit_node();
         let tunnels = ctx.tunnels.as_ref().unwrap();
-        assert!(tunnels
-            .iter()
-            .any(|t| t.tunnel_type.as_deref() == Some("TOR")));
+        assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Tor)));
     }
 
     #[test]

@@ -1,99 +1,104 @@
-# spur-rs
+# spur
+
+[![Crates.io](https://img.shields.io/crates/v/spur.svg)](https://crates.io/crates/spur)
+[![Documentation](https://docs.rs/spur/badge.svg)](https://docs.rs/spur)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Rust types for the [Spur Context API](https://docs.spur.us/context-api).
 
+Spur provides IP intelligence including VPN/proxy detection, geolocation, risk assessment, and infrastructure classification. This crate offers strongly-typed, serde-compatible data structures for working with Spur API responses.
+
 ## Features
 
-- Zero-copy deserialization with `serde`
-- All fields are optional (no mandatory fields assumed)
-- Full support for IP Context, Tag Metadata, and API Status objects
-- Efficient serialization that skips `None` values
+- **Strongly typed enums** with `Other(String)` fallback for forward compatibility
+- **Zero-copy deserialization** with serde
+- **All fields optional** - handles partial API responses gracefully
+- **Efficient serialization** - `None` values are omitted
+- **Test utilities** - builders and fixtures for testing (via `test-utils` feature)
+- **Property-based testing** - proptest strategies included
 
-## Usage
+## Installation
 
 Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-spur = "0.1"
+spur = "0.2"
 serde_json = "1"
 ```
 
-### Deserializing an IP Context
+## Quick Start
 
 ```rust
-use spur::IpContext;
+use spur::{IpContext, Infrastructure, TunnelType, Risk};
 
 let json = r#"{
     "ip": "89.39.106.191",
     "infrastructure": "DATACENTER",
-    "as": {
-        "number": 49981,
-        "organization": "WorldStream"
-    },
-    "client": {
-        "behaviors": ["FILE_SHARING", "TOR_PROXY_USER"],
-        "count": 4,
-        "countries": 2
-    }
+    "as": { "number": 49981, "organization": "WorldStream" },
+    "risks": ["TUNNEL", "SPAM"],
+    "tunnels": [{ "type": "VPN", "operator": "NordVPN", "anonymous": true }]
 }"#;
 
-let context: IpContext = serde_json::from_str(json)?;
-println!("IP: {:?}", context.ip);
-println!("Infrastructure: {:?}", context.infrastructure);
+let context: IpContext = serde_json::from_str(json).unwrap();
+
+// Use strongly typed enums
+assert_eq!(context.infrastructure, Some(Infrastructure::Datacenter));
+
+// Check for VPN usage
+let is_vpn = context.tunnels.as_ref()
+    .map(|t| t.iter().any(|t| t.tunnel_type == Some(TunnelType::Vpn)))
+    .unwrap_or(false);
+
+// Check risk factors
+let has_tunnel_risk = context.risks.as_ref()
+    .map(|r| r.contains(&Risk::Tunnel))
+    .unwrap_or(false);
 ```
 
-### Deserializing Tag Metadata
+## Strongly Typed Enums
+
+All API string fields that represent discrete values are now typed enums:
+
+| Enum | Values | Field |
+|------|--------|-------|
+| `Infrastructure` | `Datacenter`, `Residential`, `Mobile`, `Business` | `infrastructure` |
+| `Risk` | `Tunnel`, `Spam`, `CallbackProxy`, `GeoMismatch` | `risks` |
+| `Service` | `OpenVpn`, `Ipsec`, `Wireguard`, `Ssh`, `Pptp` | `services` |
+| `TunnelType` | `Vpn`, `Proxy`, `Tor` | `tunnel_type` |
+| `Behavior` | `FileSharing`, `TorProxyUser` | `behaviors` |
+| `DeviceType` | `Mobile`, `Desktop` | `types` |
+
+All enums include an `Other(String)` variant for forward compatibility with new API values:
 
 ```rust
-use spur::TagMetadata;
+use spur::Infrastructure;
 
-let json = r#"{
-    "tag": "OXYLABS_PROXY",
-    "name": "Oxylabs",
-    "isAnonymous": "true",
-    "categories": ["RESIDENTIAL_PROXY", "DATACENTER_PROXY"]
-}"#;
-
-let meta: TagMetadata = serde_json::from_str(json)?;
-println!("Tag: {:?}", meta.tag);
-println!("Anonymous: {:?}", meta.is_anonymous);
-```
-
-### Checking API Status
-
-```rust
-use spur::ApiStatus;
-
-let json = r#"{
-    "active": true,
-    "queriesRemaining": 49283,
-    "serviceTier": "online"
-}"#;
-
-let status: ApiStatus = serde_json::from_str(json)?;
-println!("Active: {:?}", status.active);
-println!("Remaining: {:?}", status.queries_remaining);
+// Unknown values deserialize to Other
+let json = r#""SATELLITE""#;
+let infra: Infrastructure = serde_json::from_str(json).unwrap();
+assert!(infra.is_other());
+assert_eq!(infra.as_str(), "SATELLITE");
 ```
 
 ## Types
 
 ### IpContext
 
-The main IP context object with the following optional fields:
+The main IP context object:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `ai` | `Ai` | AI activity observed from this IP |
-| `autonomous_system` | `AutonomousSystem` | BGP AS information (serialized as `as`) |
-| `client` | `Client` | Client descriptive data |
-| `infrastructure` | `String` | Infrastructure type |
 | `ip` | `String` | IPv4/IPv6 address |
-| `location` | `Location` | Geolocation data |
+| `infrastructure` | `Infrastructure` | Network type (datacenter, residential, etc.) |
 | `organization` | `String` | Organization assigned to the IP |
-| `risks` | `Vec<String>` | Risk factors |
-| `services` | `Vec<String>` | Services/protocols in use |
-| `tunnels` | `Vec<Tunnel>` | Tunneling information |
+| `autonomous_system` | `AutonomousSystem` | BGP AS information |
+| `location` | `Location` | Geolocation data |
+| `risks` | `Vec<Risk>` | Risk factors |
+| `services` | `Vec<Service>` | Services/protocols in use |
+| `tunnels` | `Vec<Tunnel>` | VPN/proxy/Tor information |
+| `client` | `Client` | Client behavior and device data |
+| `ai` | `Ai` | AI activity observed from this IP |
 
 ### TagMetadata
 
@@ -102,6 +107,79 @@ Metadata and metrics for a service tag.
 ### ApiStatus
 
 API token status with `active`, `queries_remaining`, and `service_tier` fields.
+
+## Test Utilities
+
+Enable the `test-utils` feature for testing helpers:
+
+```toml
+[dev-dependencies]
+spur = { version = "0.2", features = ["test-utils"] }
+```
+
+### Builder Pattern
+
+```rust
+use spur::test_utils::IpContextBuilder;
+use spur::{Infrastructure, Risk, Service};
+
+let context = IpContextBuilder::new()
+    .ip("1.2.3.4")
+    .infrastructure(Infrastructure::Datacenter)
+    .asn(12345, "Example Corp")
+    .vpn("NordVPN")
+    .add_risk(Risk::Tunnel)
+    .add_service(Service::OpenVpn)
+    .build();
+```
+
+### Pre-built Fixtures
+
+```rust
+use spur::test_utils::fixtures;
+
+let residential = fixtures::residential_ip();
+let vpn = fixtures::vpn_ip();
+let tor = fixtures::tor_exit_node();
+let datacenter = fixtures::datacenter_ip();
+let ai_scraper = fixtures::ai_scraper_ip();
+```
+
+### Proptest Strategies
+
+```rust
+use proptest::prelude::*;
+use spur::proptest_strategies::*;
+
+proptest! {
+    #[test]
+    fn roundtrip(context in arb_ip_context()) {
+        let json = serde_json::to_string(&context).unwrap();
+        let parsed: IpContext = serde_json::from_str(&json).unwrap();
+        assert_eq!(context, parsed);
+    }
+}
+```
+
+## Migration from v0.1
+
+Version 0.2.0 introduces breaking changes with strongly typed enums:
+
+```rust
+// v0.1 (string-based)
+assert_eq!(context.infrastructure.as_deref(), Some("DATACENTER"));
+
+// v0.2 (enum-based)
+assert_eq!(context.infrastructure, Some(Infrastructure::Datacenter));
+```
+
+Key changes:
+- `infrastructure: Option<String>` → `Option<Infrastructure>`
+- `risks: Option<Vec<String>>` → `Option<Vec<Risk>>`
+- `services: Option<Vec<String>>` → `Option<Vec<Service>>`
+- `tunnel_type: Option<String>` → `Option<TunnelType>`
+- `behaviors: Option<Vec<String>>` → `Option<Vec<Behavior>>`
+- `types: Option<Vec<String>>` → `Option<Vec<DeviceType>>`
 
 ## License
 

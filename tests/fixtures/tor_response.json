@@ -1,0 +1,29 @@
+{
+    "ip": "185.220.101.42",
+    "infrastructure": "DATACENTER",
+    "organization": "Tor Exit Node",
+    "as": {
+        "number": 60729,
+        "organization": "ZWIEBELFREUNDE"
+    },
+    "location": {
+        "country": "DE",
+        "city": "Frankfurt",
+        "state": "Hesse",
+        "latitude": 50.1109,
+        "longitude": 8.6821
+    },
+    "risks": ["TUNNEL", "CALLBACK_PROXY"],
+    "tunnels": [
+        {
+            "type": "TOR",
+            "operator": "Tor Project",
+            "anonymous": true
+        }
+    ],
+    "client": {
+        "count": 500,
+        "countries": 100,
+        "behaviors": ["TOR_PROXY_USER"]
+    }
+}
