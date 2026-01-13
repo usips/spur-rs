@@ -1,0 +1,46 @@
+{
+  "as": {
+    "number": 214483,
+    "organization": "FiberPower LLC"
+  },
+  "client": {
+    "concentration": {
+      "city": "Forest Hill North",
+      "country": "CA",
+      "density": 1,
+      "geohash": "dpz88u",
+      "skew": 1643,
+      "state": "Ontario"
+    },
+    "count": 2,
+    "countries": 1,
+    "proxies": [
+      "PROXYRACK_PROXY",
+      "PACKETSTREAM_PROXY",
+      "ABCPROXY_PROXY",
+      "DATAIMPULSE_PROXY",
+      "IPIDEA_PROXY",
+      "NSOCKS_PROXY"
+    ],
+    "types": [
+      "DESKTOP"
+    ]
+  },
+  "ip": "38.13.137.79",
+  "location": {
+    "country": "US"
+  },
+  "organization": "FiberPower LLC",
+  "risks": [
+    "CALLBACK_PROXY",
+    "TUNNEL",
+    "GEO_MISMATCH"
+  ],
+  "tunnels": [
+    {
+      "anonymous": true,
+      "operator": "MYSTERIUM_VPN",
+      "type": "VPN"
+    }
+  ]
+}

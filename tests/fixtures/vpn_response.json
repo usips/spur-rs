@@ -1,45 +1,40 @@
 {
-    "ip": "89.39.106.191",
-    "infrastructure": "DATACENTER",
-    "organization": "WorldStream B.V.",
-    "as": {
-        "number": 49981,
-        "organization": "WorldStream B.V."
+  "as": {
+    "number": 49981,
+    "organization": "WorldStream"
+  },
+  "client": {
+    "behaviors": ["FILE_SHARING", "TOR_PROXY_USER"],
+    "concentration": {
+      "city": "Polāia Kalān",
+      "country": "IN",
+      "density": 0.2675,
+      "geohash": "tsn",
+      "skew": 6762,
+      "state": "Madhya Pradesh"
     },
-    "location": {
-        "country": "NL",
-        "city": "Amsterdam",
-        "state": "North Holland",
-        "latitude": 52.3676,
-        "longitude": 4.9041
-    },
-    "risks": ["TUNNEL"],
-    "services": ["OPENVPN", "WIREGUARD"],
-    "tunnels": [
-        {
-            "type": "VPN",
-            "operator": "NordVPN",
-            "anonymous": true,
-            "entries": [
-                {
-                    "ip": "185.156.46.10",
-                    "location": {
-                        "country": "US",
-                        "city": "New York"
-                    },
-                    "as": {
-                        "number": 12345,
-                        "organization": "Entry Provider"
-                    }
-                }
-            ]
-        }
-    ],
-    "client": {
-        "count": 50,
-        "countries": 15,
-        "spread": 1500000,
-        "types": ["DESKTOP", "MOBILE"],
-        "behaviors": ["FILE_SHARING"]
+    "count": 4,
+    "countries": 2,
+    "proxies": ["ABCPROXY_PROXY", "9PROXY_PROXY", "NETNUT_PROXY", "GOPROXY_PROXY"],
+    "spread": 4724209,
+    "types": ["MOBILE", "DESKTOP"]
+  },
+  "infrastructure": "DATACENTER",
+  "ip": "89.39.106.191",
+  "location": {
+    "city": "Amsterdam",
+    "country": "NL",
+    "state": "North Holland"
+  },
+  "organization": "WorldStream B.V.",
+  "risks": ["CALLBACK_PROXY", "TUNNEL", "GEO_MISMATCH"],
+  "services": ["OPENVPN"],
+  "tunnels": [
+    {
+      "anonymous": true,
+      "entries": ["89.39.106.82"],
+      "operator": "PROTON_VPN",
+      "type": "VPN"
     }
+  ]
 }

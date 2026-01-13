@@ -1,0 +1,38 @@
+{
+  "as": {
+    "number": 9009,
+    "organization": "M247 Europe SRL"
+  },
+  "client": {
+    "behaviors": [
+      "FILE_SHARING"
+    ],
+    "count": 1,
+    "proxies": [
+      "NSOCKS_PROXY",
+      "NETNUT_PROXY"
+    ],
+    "types": [
+      "MOBILE"
+    ]
+  },
+  "infrastructure": "DATACENTER",
+  "ip": "146.70.84.22",
+  "location": {
+    "city": "Newark",
+    "country": "US",
+    "state": "New Jersey"
+  },
+  "organization": "M247 Europe - Ohio Infrastructure",
+  "risks": [
+    "CALLBACK_PROXY",
+    "TUNNEL"
+  ],
+  "tunnels": [
+    {
+      "anonymous": true,
+      "operator": "PROTON_VPN",
+      "type": "VPN"
+    }
+  ]
+}

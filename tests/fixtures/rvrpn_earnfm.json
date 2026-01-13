@@ -1,0 +1,41 @@
+{
+  "as": {
+    "number": 40403,
+    "organization": "Rocks Computer Services, LLC"
+  },
+  "client": {
+    "concentration": {
+      "city": "Driyorejo",
+      "country": "ID",
+      "density": 1,
+      "geohash": "qw8n5p",
+      "skew": 15252,
+      "state": "East Java"
+    },
+    "count": 1,
+    "countries": 1,
+    "proxies": [
+      "PROXYRACK_PROXY",
+      "GEONODE_PROXY",
+      "EARNFM_PROXY",
+      "PACKETSTREAM_PROXY",
+      "DATAIMPULSE_PROXY"
+    ]
+  },
+  "infrastructure": "DATACENTER",
+  "ip": "69.17.32.81",
+  "location": {
+    "country": "US"
+  },
+  "organization": "Rocks Computer Services. LLC",
+  "risks": [
+    "CALLBACK_PROXY",
+    "GEO_MISMATCH"
+  ],
+  "tunnels": [
+    {
+      "anonymous": false,
+      "type": "PROXY"
+    }
+  ]
+}

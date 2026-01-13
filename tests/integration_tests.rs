@@ -18,13 +18,18 @@ fn test_parse_realistic_vpn_response() {
 
     let asys = context.autonomous_system.as_ref().unwrap();
     assert_eq!(asys.number, Some(49981));
-    assert_eq!(asys.organization.as_deref(), Some("WorldStream B.V."));
+    assert_eq!(asys.organization.as_deref(), Some("WorldStream"));
 
     let tunnels = context.tunnels.as_ref().unwrap();
     assert_eq!(tunnels.len(), 1);
     assert_eq!(tunnels[0].tunnel_type, Some(TunnelType::Vpn));
-    assert_eq!(tunnels[0].operator.as_deref(), Some("NordVPN"));
+    assert_eq!(tunnels[0].operator.as_deref(), Some("PROTON_VPN"));
     assert_eq!(tunnels[0].anonymous, Some(true));
+
+    // Verify entries are parsed as simple IP strings
+    let entries = tunnels[0].entries.as_ref().unwrap();
+    assert!(!entries.is_empty());
+    assert!(entries[0].ip.is_some());
 
     let risks = context.risks.as_ref().unwrap();
     assert!(risks.contains(&Risk::Tunnel));

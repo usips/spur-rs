@@ -1,6 +1,6 @@
 //! IP Context Object types for the Spur Context API.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::enums::{Behavior, DeviceType, Infrastructure, Risk, Service, TunnelType};
 
@@ -177,7 +177,12 @@ pub struct Tunnel {
     pub anonymous: Option<bool>,
 
     /// List of tunnel entries (ingress points).
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The API may return these as simple IP strings or as detailed objects.
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_tunnel_entries",
+        default
+    )]
     pub entries: Option<Vec<TunnelEntry>>,
 
     /// The operator or service running this tunnel.
@@ -190,6 +195,9 @@ pub struct Tunnel {
 }
 
 /// A tunnel entry (ingress point).
+///
+/// The API may return entries as simple IP strings or as detailed objects.
+/// Both formats are supported during deserialization.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct TunnelEntry {
@@ -204,6 +212,79 @@ pub struct TunnelEntry {
     /// Autonomous system of the entry point.
     #[serde(rename = "as", skip_serializing_if = "Option::is_none")]
     pub autonomous_system: Option<AutonomousSystem>,
+}
+
+impl TunnelEntry {
+    /// Create a tunnel entry from just an IP address.
+    pub fn from_ip(ip: impl Into<String>) -> Self {
+        Self {
+            ip: Some(ip.into()),
+            location: None,
+            autonomous_system: None,
+        }
+    }
+}
+
+/// Deserialize tunnel entries that can be either strings or objects.
+///
+/// The Spur API returns entries in two formats:
+/// - Simple: `["1.2.3.4", "5.6.7.8"]`
+/// - Detailed: `[{"ip": "1.2.3.4", "location": {...}}]`
+fn deserialize_tunnel_entries<'de, D>(deserializer: D) -> Result<Option<Vec<TunnelEntry>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::{self, SeqAccess, Visitor};
+
+    struct TunnelEntriesVisitor;
+
+    impl<'de> Visitor<'de> for TunnelEntriesVisitor {
+        type Value = Option<Vec<TunnelEntry>>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("an array of strings or tunnel entry objects")
+        }
+
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+
+        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserializer.deserialize_seq(self)
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: SeqAccess<'de>,
+        {
+            let mut entries = Vec::new();
+
+            while let Some(value) = seq.next_element::<serde_json::Value>()? {
+                let entry = match value {
+                    serde_json::Value::String(ip) => TunnelEntry::from_ip(ip),
+                    serde_json::Value::Object(_) => {
+                        serde_json::from_value(value).map_err(de::Error::custom)?
+                    }
+                    _ => {
+                        return Err(de::Error::custom(
+                            "expected string or object in entries array",
+                        ))
+                    }
+                };
+                entries.push(entry);
+            }
+
+            Ok(Some(entries))
+        }
+    }
+
+    deserializer.deserialize_option(TunnelEntriesVisitor)
 }
 
 #[cfg(test)]

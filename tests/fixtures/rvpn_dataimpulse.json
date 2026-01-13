@@ -1,0 +1,36 @@
+{
+  "as": {
+    "number": 3356,
+    "organization": "Lumen (Level 3)"
+  },
+  "client": {
+    "concentration": {
+      "city": "Buckeye",
+      "country": "US",
+      "density": 0.3129,
+      "geohash": "9mzwt",
+      "skew": 3516,
+      "state": "Arizona"
+    },
+    "count": 8,
+    "countries": 2,
+    "proxies": [
+      "DATAIMPULSE_PROXY"
+    ],
+    "spread": 44364550,
+    "types": [
+      "MOBILE",
+      "DESKTOP"
+    ]
+  },
+  "ip": "8.10.181.141",
+  "location": {
+    "city": "New York",
+    "country": "US",
+    "state": "New York"
+  },
+  "organization": "Level 3 Parent, LLC",
+  "risks": [
+    "CALLBACK_PROXY"
+  ]
+}

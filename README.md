@@ -145,6 +145,24 @@ let datacenter = fixtures::datacenter_ip();
 let ai_scraper = fixtures::ai_scraper_ip();
 ```
 
+### Testing with Real API Responses
+
+Save JSON responses from the Spur API as fixtures for testing against real data:
+
+```bash
+# Save an API response as a fixture
+curl -s "https://api.spur.us/v2/context/1.2.3.4" \
+  -H "Token: YOUR_API_TOKEN" \
+  | jq . > tests/fixtures/my_new_fixture.json
+```
+
+All JSON files in `tests/fixtures/` are automatically tested for:
+- Valid parsing to `IpContext`
+- Round-trip serialization
+- Type-specific validation (VPN fixtures have tunnels, etc.)
+
+See [tests/fixtures/README.md](tests/fixtures/README.md) for naming conventions and details.
+
 ### Proptest Strategies
 
 ```rust
