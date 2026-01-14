@@ -487,14 +487,18 @@ mod tests {
         let ctx = fixtures::vpn_ip();
         assert!(ctx.tunnels.is_some());
         let tunnels = ctx.tunnels.as_ref().unwrap();
-        assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Vpn)));
+        assert!(tunnels
+            .iter()
+            .any(|t| t.tunnel_type == Some(TunnelType::Vpn)));
     }
 
     #[test]
     fn test_fixtures_tor() {
         let ctx = fixtures::tor_exit_node();
         let tunnels = ctx.tunnels.as_ref().unwrap();
-        assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Tor)));
+        assert!(tunnels
+            .iter()
+            .any(|t| t.tunnel_type == Some(TunnelType::Tor)));
     }
 
     #[test]

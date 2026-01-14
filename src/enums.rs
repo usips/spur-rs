@@ -308,9 +308,6 @@ mod tests {
     #[test]
     fn test_display() {
         assert_eq!(format!("{}", Risk::Tunnel), "TUNNEL");
-        assert_eq!(
-            format!("{}", Risk::Other("CUSTOM".to_string())),
-            "CUSTOM"
-        );
+        assert_eq!(format!("{}", Risk::Other("CUSTOM".to_string())), "CUSTOM");
     }
 }

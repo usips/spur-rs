@@ -4,7 +4,7 @@
 
 use proptest::prelude::*;
 use spur::proptest_strategies::*;
-use spur::{IpContext, Infrastructure, Risk, Service, TunnelType};
+use spur::{Infrastructure, IpContext, Risk, Service, TunnelType};
 
 proptest! {
     /// Verify that all generated IpContext values can roundtrip through JSON.

@@ -3,9 +3,7 @@
 //! These tests verify end-to-end functionality using realistic API responses
 //! and cross-module integration.
 
-use spur::{
-    Behavior, DeviceType, Infrastructure, IpContext, Risk, Service, TunnelType,
-};
+use spur::{Behavior, DeviceType, Infrastructure, IpContext, Risk, Service, TunnelType};
 
 /// Test parsing a realistic VPN response from the Spur API.
 #[test]
@@ -60,7 +58,9 @@ fn test_parse_tor_response() {
     assert_eq!(context.infrastructure, Some(Infrastructure::Datacenter));
 
     let tunnels = context.tunnels.as_ref().unwrap();
-    assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Tor)));
+    assert!(tunnels
+        .iter()
+        .any(|t| t.tunnel_type == Some(TunnelType::Tor)));
 }
 
 /// Test parsing a datacenter IP with AI activity.
@@ -71,7 +71,11 @@ fn test_parse_ai_scraper_response() {
 
     let ai = context.ai.as_ref().unwrap();
     assert_eq!(ai.scrapers, Some(true));
-    assert!(ai.services.as_ref().unwrap().contains(&"OPENAI".to_string()));
+    assert!(ai
+        .services
+        .as_ref()
+        .unwrap()
+        .contains(&"OPENAI".to_string()));
 }
 
 /// Test parsing response with unknown enum values (forward compatibility).

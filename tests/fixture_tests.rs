@@ -45,11 +45,7 @@ fn get_fixture_files() -> Vec<PathBuf> {
         .expect("Failed to read fixtures directory")
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
-        .filter(|path| {
-            path.extension()
-                .map(|ext| ext == "json")
-                .unwrap_or(false)
-        })
+        .filter(|path| path.extension().map(|ext| ext == "json").unwrap_or(false))
         .collect()
 }
 
@@ -57,7 +53,10 @@ fn get_fixture_files() -> Vec<PathBuf> {
 #[test]
 fn test_all_fixtures_parse() {
     let fixtures = get_fixture_files();
-    assert!(!fixtures.is_empty(), "No fixture files found in tests/fixtures/");
+    assert!(
+        !fixtures.is_empty(),
+        "No fixture files found in tests/fixtures/"
+    );
 
     for fixture_path in &fixtures {
         let filename = fixture_path.file_name().unwrap().to_string_lossy();
@@ -101,11 +100,7 @@ fn test_all_fixtures_roundtrip() {
             .unwrap_or_else(|e| panic!("Failed to reparse {}: {}", filename, e));
 
         // Verify equality
-        assert_eq!(
-            original, reparsed,
-            "Round-trip mismatch for {}",
-            filename
-        );
+        assert_eq!(original, reparsed, "Round-trip mismatch for {}", filename);
 
         println!("✓ Round-trip successful for {}", filename);
     }
@@ -230,7 +225,10 @@ fn test_residential_fixtures_have_residential_infra() {
             filename
         );
 
-        println!("✓ Residential fixture {} has correct infrastructure", filename);
+        println!(
+            "✓ Residential fixture {} has correct infrastructure",
+            filename
+        );
     }
 }
 
@@ -297,7 +295,10 @@ fn test_fixture_summary() {
             println!("   Risks: {:?}", risks);
         }
         if let Some(tunnels) = &context.tunnels {
-            let types: Vec<_> = tunnels.iter().filter_map(|t| t.tunnel_type.as_ref()).collect();
+            let types: Vec<_> = tunnels
+                .iter()
+                .filter_map(|t| t.tunnel_type.as_ref())
+                .collect();
             println!("   Tunnels: {:?}", types);
         }
         if let Some(ai) = &context.ai {
@@ -328,7 +329,9 @@ mod individual_fixture_tests {
 
         // Should have VPN tunnel
         let tunnels = context.tunnels.as_ref().expect("VPN should have tunnels");
-        assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Vpn)));
+        assert!(tunnels
+            .iter()
+            .any(|t| t.tunnel_type == Some(TunnelType::Vpn)));
 
         // Should have tunnel risk
         let risks = context.risks.as_ref().expect("VPN should have risks");
@@ -356,7 +359,9 @@ mod individual_fixture_tests {
 
         // Should have Tor tunnel
         let tunnels = context.tunnels.as_ref().expect("Tor should have tunnels");
-        assert!(tunnels.iter().any(|t| t.tunnel_type == Some(TunnelType::Tor)));
+        assert!(tunnels
+            .iter()
+            .any(|t| t.tunnel_type == Some(TunnelType::Tor)));
 
         // Should have high-risk indicators
         let risks = context.risks.as_ref().expect("Tor should have risks");
