@@ -1,4 +1,4 @@
-//! Strongly typed enums for Spur API fields.
+//! Strongly typed enums for Spur Context API fields.
 //!
 //! All enums include an `Other(String)` variant for forward compatibility
 //! with API additions. Unknown values deserialize to `Other` rather than

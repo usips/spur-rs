@@ -1,7 +1,7 @@
 //! # Test Utilities for Spur API Types
 //!
 //! This module provides builders, fixtures, and helper functions for testing
-//! code that uses the Spur Context API types.
+//! code that uses Spur API types.
 //!
 //! ## Features
 //!
@@ -9,10 +9,12 @@
 //!
 //! ```toml
 //! [dev-dependencies]
-//! spur = { version = "0.2", features = ["test-utils"] }
+//! spur = { version = "0.3", features = ["test-utils"] }
 //! ```
 //!
 //! ## Usage
+//!
+//! ### Context API
 //!
 //! ```rust
 //! use spur::test_utils::{IpContextBuilder, fixtures};
@@ -30,11 +32,32 @@
 //! let vpn = fixtures::vpn_ip();
 //! let tor = fixtures::tor_exit_node();
 //! ```
+//!
+//! ### Monocle API
+//!
+//! ```rust
+//! use spur::test_utils::{AssessmentBuilder, monocle_fixtures};
+//!
+//! // Build a custom assessment for testing
+//! let assessment = AssessmentBuilder::new()
+//!     .ip("1.2.3.4")
+//!     .vpn(true)
+//!     .build();
+//!
+//! // Use pre-built fixtures
+//! let vpn_user = monocle_fixtures::vpn_assessment();
+//! let clean_user = monocle_fixtures::clean_assessment();
+//! ```
 
-use crate::{
+use crate::context::{
     Ai, AutonomousSystem, Behavior, Client, Concentration, DeviceType, Infrastructure, IpContext,
     Location, Risk, Service, Tunnel, TunnelEntry, TunnelType,
 };
+use crate::monocle::Assessment;
+
+// =============================================================================
+// Context API Test Utilities
+// =============================================================================
 
 /// Builder for creating [`IpContext`] instances in tests.
 ///
@@ -252,7 +275,7 @@ impl IpContextBuilder {
     }
 }
 
-/// Pre-built test fixtures for common scenarios.
+/// Pre-built test fixtures for common Context API scenarios.
 ///
 /// These fixtures represent typical IP contexts that you might encounter
 /// in production and are useful for testing risk assessment logic.
@@ -438,10 +461,188 @@ pub fn from_json(json: &str) -> IpContext {
     serde_json::from_str(json).expect("Should parse as IpContext")
 }
 
+// =============================================================================
+// Monocle API Test Utilities
+// =============================================================================
+
+/// Builder for creating [`Assessment`] instances in tests.
+///
+/// Provides a fluent API for constructing test assessments with specific properties.
+///
+/// # Example
+///
+/// ```rust
+/// use spur::test_utils::AssessmentBuilder;
+///
+/// let assessment = AssessmentBuilder::new()
+///     .ip("1.2.3.4")
+///     .vpn(true)
+///     .anon(true)
+///     .build();
+///
+/// assert!(assessment.vpn);
+/// assert!(assessment.is_anonymized());
+/// ```
+#[derive(Debug, Clone)]
+pub struct AssessmentBuilder {
+    assessment: Assessment,
+}
+
+impl Default for AssessmentBuilder {
+    fn default() -> Self {
+        Self {
+            assessment: Assessment {
+                vpn: false,
+                proxied: false,
+                anon: false,
+                ip: "127.0.0.1".to_string(),
+                ts: "2024-01-01T00:00:00Z".to_string(),
+                complete: true,
+                id: "test-assessment-id".to_string(),
+                sid: "test-session".to_string(),
+            },
+        }
+    }
+}
+
+impl AssessmentBuilder {
+    /// Create a new builder with default values.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the IP address.
+    pub fn ip(mut self, ip: &str) -> Self {
+        self.assessment.ip = ip.to_string();
+        self
+    }
+
+    /// Set the VPN detection flag.
+    pub fn vpn(mut self, vpn: bool) -> Self {
+        self.assessment.vpn = vpn;
+        self
+    }
+
+    /// Set the proxy detection flag.
+    pub fn proxied(mut self, proxied: bool) -> Self {
+        self.assessment.proxied = proxied;
+        self
+    }
+
+    /// Set the anonymous flag.
+    pub fn anon(mut self, anon: bool) -> Self {
+        self.assessment.anon = anon;
+        self
+    }
+
+    /// Set the timestamp.
+    pub fn timestamp(mut self, ts: &str) -> Self {
+        self.assessment.ts = ts.to_string();
+        self
+    }
+
+    /// Set the completion status.
+    pub fn complete(mut self, complete: bool) -> Self {
+        self.assessment.complete = complete;
+        self
+    }
+
+    /// Set the assessment ID.
+    pub fn id(mut self, id: &str) -> Self {
+        self.assessment.id = id.to_string();
+        self
+    }
+
+    /// Set the session ID.
+    pub fn session_id(mut self, sid: &str) -> Self {
+        self.assessment.sid = sid.to_string();
+        self
+    }
+
+    /// Build the final [`Assessment`].
+    pub fn build(self) -> Assessment {
+        self.assessment
+    }
+}
+
+/// Pre-built test fixtures for common Monocle assessment scenarios.
+pub mod monocle_fixtures {
+    use super::*;
+
+    /// A clean assessment with no anonymization detected.
+    pub fn clean_assessment() -> Assessment {
+        AssessmentBuilder::new()
+            .ip("203.0.113.1")
+            .vpn(false)
+            .proxied(false)
+            .anon(false)
+            .session_id("login-form")
+            .build()
+    }
+
+    /// An assessment detecting VPN usage.
+    pub fn vpn_assessment() -> Assessment {
+        AssessmentBuilder::new()
+            .ip("89.39.106.191")
+            .vpn(true)
+            .proxied(false)
+            .anon(true)
+            .session_id("checkout")
+            .build()
+    }
+
+    /// An assessment detecting proxy usage.
+    pub fn proxy_assessment() -> Assessment {
+        AssessmentBuilder::new()
+            .ip("45.33.32.156")
+            .vpn(false)
+            .proxied(true)
+            .anon(true)
+            .session_id("registration")
+            .build()
+    }
+
+    /// An assessment detecting both VPN and proxy.
+    pub fn highly_anonymous_assessment() -> Assessment {
+        AssessmentBuilder::new()
+            .ip("185.220.101.1")
+            .vpn(true)
+            .proxied(true)
+            .anon(true)
+            .session_id("payment")
+            .build()
+    }
+
+    /// An incomplete assessment that should not be trusted.
+    pub fn incomplete_assessment() -> Assessment {
+        AssessmentBuilder::new()
+            .ip("10.0.0.1")
+            .vpn(false)
+            .proxied(false)
+            .anon(false)
+            .complete(false)
+            .session_id("checkout")
+            .build()
+    }
+}
+
+/// Convert an [`Assessment`] to JSON for testing.
+pub fn assessment_to_json(assessment: &Assessment) -> String {
+    serde_json::to_string_pretty(assessment).expect("Assessment should serialize")
+}
+
+/// Parse JSON into an [`Assessment`] for testing.
+///
+/// Panics with a descriptive message if parsing fails.
+pub fn assessment_from_json(json: &str) -> Assessment {
+    serde_json::from_str(json).expect("Should parse as Assessment")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // Context API tests
     #[test]
     fn test_builder_basic() {
         let context = IpContextBuilder::new()
@@ -509,5 +710,69 @@ mod tests {
 
         assert_eq!(original.ip, parsed.ip);
         assert_eq!(original.infrastructure, parsed.infrastructure);
+    }
+
+    // Monocle API tests
+    #[test]
+    fn test_assessment_builder_basic() {
+        let assessment = AssessmentBuilder::new()
+            .ip("1.2.3.4")
+            .vpn(true)
+            .build();
+
+        assert_eq!(assessment.ip, "1.2.3.4");
+        assert!(assessment.vpn);
+        assert!(assessment.complete);
+    }
+
+    #[test]
+    fn test_assessment_builder_full() {
+        let assessment = AssessmentBuilder::new()
+            .ip("5.6.7.8")
+            .vpn(true)
+            .proxied(true)
+            .anon(true)
+            .timestamp("2024-06-15T12:00:00Z")
+            .complete(true)
+            .id("custom-id")
+            .session_id("custom-session")
+            .build();
+
+        assert_eq!(assessment.ip, "5.6.7.8");
+        assert!(assessment.vpn);
+        assert!(assessment.proxied);
+        assert!(assessment.anon);
+        assert_eq!(assessment.ts, "2024-06-15T12:00:00Z");
+        assert_eq!(assessment.id, "custom-id");
+        assert_eq!(assessment.sid, "custom-session");
+    }
+
+    #[test]
+    fn test_monocle_fixtures_clean() {
+        let assessment = monocle_fixtures::clean_assessment();
+        assert!(!assessment.is_anonymized());
+        assert!(assessment.is_trustworthy());
+    }
+
+    #[test]
+    fn test_monocle_fixtures_vpn() {
+        let assessment = monocle_fixtures::vpn_assessment();
+        assert!(assessment.vpn);
+        assert!(assessment.is_anonymized());
+    }
+
+    #[test]
+    fn test_monocle_fixtures_incomplete() {
+        let assessment = monocle_fixtures::incomplete_assessment();
+        assert!(!assessment.is_trustworthy());
+    }
+
+    #[test]
+    fn test_assessment_json_roundtrip() {
+        let original = monocle_fixtures::highly_anonymous_assessment();
+        let json = assessment_to_json(&original);
+        let parsed = assessment_from_json(&json);
+
+        assert_eq!(original, parsed);
     }
 }

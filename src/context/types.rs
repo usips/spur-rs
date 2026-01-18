@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::enums::{Behavior, DeviceType, Infrastructure, Risk, Service, TunnelType};
+use super::enums::{Behavior, DeviceType, Infrastructure, Risk, Service, TunnelType};
 
 /// The IP Context Object summarizes all available information for an IP address.
 ///
