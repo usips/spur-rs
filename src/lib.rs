@@ -1,15 +1,27 @@
 //! # spur
 //!
-//! Rust types for the [Spur Context API](https://docs.spur.us/context-api).
+//! Rust types for [Spur](https://spur.us) APIs including the
+//! [Context API](https://docs.spur.us/context-api) and
+//! [Monocle](https://docs.spur.us/monocle).
 //!
 //! ## Overview
 //!
 //! This crate provides strongly-typed, serde-compatible data structures for
-//! working with Spur's IP intelligence API. Spur provides detailed context
-//! about IP addresses including VPN/proxy detection, geolocation, risk
-//! assessment, and infrastructure classification.
+//! working with Spur's IP intelligence APIs:
 //!
-//! ## Key Types
+//! - **Context API**: Detailed IP intelligence including VPN/proxy detection,
+//!   geolocation, risk assessment, and infrastructure classification.
+//! - **Monocle**: A lightweight JavaScript utility for passive VPN/proxy detection
+//!   at the device level.
+//!
+//! ## Modules
+//!
+//! | Module | Purpose |
+//! |--------|---------|
+//! | [`context`] | Context API types for IP intelligence |
+//! | [`monocle`] | Monocle API types for device-level detection |
+//!
+//! ## Context API Types
 //!
 //! | Type | Purpose |
 //! |------|---------|
@@ -47,13 +59,13 @@
 //!
 //! ```toml
 //! [dependencies]
-//! spur = "0.2"
+//! spur = "0.3"
 //! serde_json = "1"
 //! ```
 //!
 //! ## Usage Examples
 //!
-//! ### Deserializing an IP Context
+//! ### Context API: Deserializing an IP Context
 //!
 //! ```rust
 //! use spur::{IpContext, Infrastructure, TunnelType};
@@ -76,6 +88,29 @@
 //!     .map(|t| t.iter().any(|t| t.tunnel_type == Some(TunnelType::Vpn)))
 //!     .unwrap_or(false);
 //! assert!(is_vpn);
+//! ```
+//!
+//! ### Monocle: Deserializing an Assessment
+//!
+//! ```rust
+//! use spur::monocle::Assessment;
+//!
+//! let json = r#"{
+//!     "vpn": true,
+//!     "proxied": false,
+//!     "anon": true,
+//!     "ip": "37.19.221.165",
+//!     "ts": "2022-12-01T01:00:50Z",
+//!     "complete": true,
+//!     "id": "0a3e401a-b0d5-496b-b1ff-6cb8eca542a2",
+//!     "sid": "example-form"
+//! }"#;
+//!
+//! let assessment: Assessment = serde_json::from_str(json).unwrap();
+//!
+//! if assessment.is_anonymized() {
+//!     println!("User at {} is using anonymization", assessment.ip);
+//! }
 //! ```
 //!
 //! ### Working with Enums
@@ -130,7 +165,7 @@
 //!
 //! ```toml
 //! [dev-dependencies]
-//! spur = { version = "0.2", features = ["test-utils"] }
+//! spur = { version = "0.3", features = ["test-utils"] }
 //! ```
 //!
 //! ```rust,ignore
@@ -173,18 +208,16 @@
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 
-mod context;
-pub mod enums;
-mod metadata;
-mod status;
+// API modules
+pub mod context;
+pub mod monocle;
 
+// Test utilities (optional feature)
 #[cfg(any(test, feature = "test-utils"))]
 pub mod test_utils;
 
 #[cfg(any(test, feature = "test-utils"))]
 pub mod proptest_strategies;
 
+// Re-export Context API types at root for backwards compatibility
 pub use context::*;
-pub use enums::*;
-pub use metadata::*;
-pub use status::*;

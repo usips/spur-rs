@@ -21,10 +21,15 @@
 
 use proptest::prelude::*;
 
-use crate::{
+use crate::context::{
     Ai, AutonomousSystem, Behavior, Client, Concentration, DeviceType, Infrastructure, IpContext,
     Location, Risk, Service, Tunnel, TunnelEntry, TunnelType,
 };
+use crate::monocle::Assessment;
+
+// =============================================================================
+// Context API Strategies
+// =============================================================================
 
 /// Strategy for generating arbitrary Infrastructure values.
 pub fn arb_infrastructure() -> impl Strategy<Value = Infrastructure> {
@@ -289,6 +294,74 @@ pub fn arb_vpn_context() -> impl Strategy<Value = IpContext> {
         })
 }
 
+// =============================================================================
+// Monocle API Strategies
+// =============================================================================
+
+/// Strategy for generating arbitrary Assessment values.
+pub fn arb_assessment() -> impl Strategy<Value = Assessment> {
+    (
+        proptest::bool::ANY,
+        proptest::bool::ANY,
+        proptest::bool::ANY,
+        "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}",
+        "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",
+        proptest::bool::ANY,
+        "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
+        "[a-z0-9-]{3,30}",
+    )
+        .prop_map(|(vpn, proxied, anon, ip, ts, complete, id, sid)| Assessment {
+            vpn,
+            proxied,
+            anon,
+            ip,
+            ts,
+            complete,
+            id,
+            sid,
+        })
+}
+
+/// Strategy for generating clean (non-anonymous) assessments.
+pub fn arb_clean_assessment() -> impl Strategy<Value = Assessment> {
+    (
+        "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}",
+        "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",
+        "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
+        "[a-z0-9-]{3,30}",
+    )
+        .prop_map(|(ip, ts, id, sid)| Assessment {
+            vpn: false,
+            proxied: false,
+            anon: false,
+            ip,
+            ts,
+            complete: true,
+            id,
+            sid,
+        })
+}
+
+/// Strategy for generating VPN-detected assessments.
+pub fn arb_vpn_assessment() -> impl Strategy<Value = Assessment> {
+    (
+        "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}",
+        "[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",
+        "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
+        "[a-z0-9-]{3,30}",
+    )
+        .prop_map(|(ip, ts, id, sid)| Assessment {
+            vpn: true,
+            proxied: false,
+            anon: true,
+            ip,
+            ts,
+            complete: true,
+            id,
+            sid,
+        })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -362,6 +435,31 @@ mod tests {
             let display = format!("{}", infra);
             let serialized: String = serde_json::from_str(&serde_json::to_string(&infra).unwrap()).unwrap();
             assert_eq!(display, serialized);
+        }
+
+        // Monocle API tests
+        #[test]
+        fn assessment_roundtrip(assessment in arb_assessment()) {
+            let json = serde_json::to_string(&assessment).unwrap();
+            let parsed: Assessment = serde_json::from_str(&json).unwrap();
+            assert_eq!(assessment, parsed);
+        }
+
+        #[test]
+        fn clean_assessment_roundtrip(assessment in arb_clean_assessment()) {
+            let json = serde_json::to_string(&assessment).unwrap();
+            let parsed: Assessment = serde_json::from_str(&json).unwrap();
+            assert_eq!(assessment, parsed);
+            assert!(!parsed.is_anonymized());
+        }
+
+        #[test]
+        fn vpn_assessment_roundtrip(assessment in arb_vpn_assessment()) {
+            let json = serde_json::to_string(&assessment).unwrap();
+            let parsed: Assessment = serde_json::from_str(&json).unwrap();
+            assert_eq!(assessment, parsed);
+            assert!(parsed.vpn);
+            assert!(parsed.is_anonymized());
         }
     }
 }
