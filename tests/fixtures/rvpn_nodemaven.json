@@ -1,0 +1,42 @@
+{
+  "as": {
+    "number": 7922,
+    "organization": "Comcast Cable Communications, LLC"
+  },
+  "client": {
+    "concentration": {
+      "city": "Nassau",
+      "country": "US",
+      "density": 1,
+      "geohash": "dqfs2x",
+      "skew": 2,
+      "state": "Delaware"
+    },
+    "count": 40,
+    "countries": 1,
+    "proxies": [
+      "EARNFM_PROXY",
+      "IPIDEA_PROXY",
+      "OXYLABS_PROXY",
+      "ABCPROXY_PROXY",
+      "NODEMAVEN_PROXY",
+      "IPROYAL_PROXY",
+      "DATAIMPULSE_PROXY",
+      "INFATICA_PROXY"
+    ],
+    "types": [
+      "DESKTOP",
+      "MOBILE"
+    ]
+  },
+  "ip": "76.100.157.3",
+  "location": {
+    "city": "Nassau",
+    "country": "US",
+    "state": "Delaware"
+  },
+  "organization": "Comcast Cable Communications, Inc.",
+  "risks": [
+    "CALLBACK_PROXY"
+  ]
+}

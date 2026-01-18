@@ -1,0 +1,25 @@
+{
+  "as": {
+    "number": 2914,
+    "organization": "NTT America, Inc."
+  },
+  "client": {
+    "proxies": [
+      "EARNFM_PROXY",
+      "GEONODE_PROXY",
+      "ABCPROXY_PROXY",
+      "IPIDEA_PROXY",
+      "DATAIMPULSE_PROXY"
+    ]
+  },
+  "ip": "192.204.159.214",
+  "location": {
+    "city": "Los Angeles",
+    "country": "US",
+    "state": "California"
+  },
+  "organization": "NTT DATA",
+  "risks": [
+    "CALLBACK_PROXY"
+  ]
+}

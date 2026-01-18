@@ -1,0 +1,36 @@
+{
+  "as": {
+    "number": 213541,
+    "organization": "WS Telecom Inc"
+  },
+  "client": {
+    "count": 1,
+    "proxies": [
+      "DATAIMPULSE_PROXY",
+      "ABCPROXY_PROXY"
+    ],
+    "types": [
+      "DESKTOP"
+    ]
+  },
+  "infrastructure": "DATACENTER",
+  "ip": "31.204.23.187",
+  "location": {
+    "country": "US"
+  },
+  "organization": "New-York",
+  "risks": [
+    "CALLBACK_PROXY",
+    "TUNNEL"
+  ],
+  "services": [
+    "SOCKS5"
+  ],
+  "tunnels": [
+    {
+      "anonymous": true,
+      "operator": "OCULUS_PROXY",
+      "type": "PROXY"
+    }
+  ]
+}

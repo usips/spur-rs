@@ -1,0 +1,39 @@
+{
+  "as": {
+    "number": 13693,
+    "organization": "Vexus Fiber"
+  },
+  "client": {
+    "concentration": {
+      "city": "Slaton",
+      "country": "US",
+      "density": 1,
+      "geohash": "9tztt1",
+      "skew": 463,
+      "state": "Texas"
+    },
+    "count": 2,
+    "countries": 1,
+    "proxies": [
+      "MASSIVE_PROXY",
+      "SOAX_PROXY",
+      "DATAIMPULSE_PROXY",
+      "NODEMAVEN_PROXY",
+      "YILU_PROXY",
+      "IPROYAL_PROXY"
+    ],
+    "types": [
+      "MOBILE"
+    ]
+  },
+  "ip": "64.185.54.136",
+  "location": {
+    "city": "New York",
+    "country": "US",
+    "state": "New York"
+  },
+  "organization": "Vexus Fiber",
+  "risks": [
+    "CALLBACK_PROXY"
+  ]
+}

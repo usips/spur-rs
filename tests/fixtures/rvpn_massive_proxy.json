@@ -1,0 +1,21 @@
+{
+  "as": {
+    "number": 7922,
+    "organization": "Comcast Cable Communications, LLC"
+  },
+  "client": {
+    "proxies": [
+      "MASSIVE_PROXY"
+    ]
+  },
+  "ip": "2601:58b:1101:7280:f06:117a:395c:c878",
+  "location": {
+    "city": "Boynton Beach",
+    "country": "US",
+    "state": "Florida"
+  },
+  "organization": "Comcast Cable Communications, LLC",
+  "risks": [
+    "CALLBACK_PROXY"
+  ]
+}

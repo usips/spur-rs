@@ -1,0 +1,22 @@
+{
+  "as": {
+    "number": 6079,
+    "organization": "RCN"
+  },
+  "client": {
+    "proxies": [
+      "DATAIMPULSE_PROXY",
+      "IPIDEA_PROXY"
+    ]
+  },
+  "ip": "154.83.180.67",
+  "location": {
+    "city": "Virginia Beach",
+    "country": "US",
+    "state": "Virginia"
+  },
+  "organization": "SmartWave Broadband LLC",
+  "risks": [
+    "CALLBACK_PROXY"
+  ]
+}
